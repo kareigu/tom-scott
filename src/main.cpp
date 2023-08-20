@@ -1,5 +1,6 @@
 #include "commands.hpp"
 #include "config.hpp"
+#include "places.hpp"
 
 #include <cstdlib>
 #include <dpp/appcommand.h>
@@ -22,27 +23,34 @@ int main(int argc, char** argv) {
 
   auto config_ret = ts::Config::read_from_file("bot.cfg");
   if (config_ret.has_error()) {
-    spdlog::error("Failed reading config file: {}",
-                  config_ret.error().to_string());
+    spdlog::critical("Failed reading config file: {}",
+                     config_ret.error().to_string());
     return EXIT_FAILURE;
   }
   ts::Config config = config_ret.value();
 
   auto guild_id_ret = config.get_number("GUILD_ID");
   if (guild_id_ret.has_error()) {
-    spdlog::error("Error getting GUILD_ID: {}", guild_id_ret.error().to_string());
+    spdlog::critical("Error getting GUILD_ID: {}", guild_id_ret.error().to_string());
     return EXIT_FAILURE;
   }
   const auto guild_id = dpp::snowflake(guild_id_ret.value());
 
   auto token_ret = config.get_string("TOKEN");
   if (token_ret.has_error()) {
-    spdlog::error("Error getting TOKEN: ()", token_ret.error().to_string());
+    spdlog::critical("Error getting TOKEN: ()", token_ret.error().to_string());
     return EXIT_FAILURE;
   }
   auto token = token_ret.value();
   spdlog::debug(token);
   dpp::cluster bot(token);
+
+  auto places_init = ts::Places::init("data.json");
+  if (places_init.has_error()) {
+    spdlog::critical("Error initialising Places: {}", places_init.error().to_string());
+    return EXIT_FAILURE;
+  }
+  spdlog::info("Loaded places data");
 
   auto dpp_logger = spdlog::stdout_color_mt("dpp");
   bot.on_log([dpp_logger](const dpp::log_t& log) {

@@ -17,7 +17,9 @@ else()
   set(NINJA_MULTICONFIG FALSE)
 endif()
 
-set(SOURCES src/main.cpp src/config.cpp src/commands.cpp)
+set(SOURCES src/main.cpp src/config.cpp src/commands.cpp src/places.cpp
+            src/utils.cpp
+)
 
 fetchcontent_declare(
   spdlog
