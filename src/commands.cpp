@@ -58,7 +58,8 @@ TS_EXECUTE_IMPL(where) {
   try {
     auto user_id = std::get<dpp::snowflake>(event.get_parameter("user"));
     auto user = event.command.get_resolved_user(user_id);
-    event.reply(fmt::format("I'm in {} with {}{}", roll.city, generator(rand) % 2 == 0 ? "" : fmt::format("{} ", adjective), user.global_name));
+    auto user_name = user.global_name.length() > 0 ? user.global_name : user.username;
+    event.reply(fmt::format("I'm in {} with {}{}", roll.city, generator(rand) % 2 == 0 ? "" : fmt::format("{} ", adjective), user_name));
   } catch (std::bad_variant_access e) {
     event.reply(fmt::format("I'm in {}, {}", roll.city, roll.country));
   } catch (std::exception e) {
