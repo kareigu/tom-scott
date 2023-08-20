@@ -1,3 +1,4 @@
+#include "appcommand.h"
 #include "config.hpp"
 
 #include <cstdlib>
@@ -7,6 +8,7 @@
 #include <memory>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
+#include <variant>
 
 
 int main(int argc, char** argv) {
@@ -65,9 +67,24 @@ int main(int argc, char** argv) {
     }
   });
 
-  bot.on_slashcommand([](auto event) {
+  bot.on_slashcommand([](const dpp::slashcommand_t& event) {
     if (event.command.get_command_name() == "test") {
       event.reply("Nig");
+    }
+
+    if (event.command.get_command_name() == "where") {
+      auto interaction = std::get<dpp::command_interaction>(event.command.data);
+
+      try {
+        auto user_id = std::get<dpp::snowflake>(event.get_parameter("user"));
+        auto user = event.command.get_resolved_user(user_id);
+        event.reply(fmt::format("{} is a nigger ({})", user.global_name, user.has_nitro_full() ? "turbo" : "ei turbo"));
+      } catch (std::bad_variant_access e) {
+        event.reply("Nigger");
+      } catch (std::exception e) {
+        event.reply("Error");
+        spdlog::error("Error parsing command {}", e.what());
+      }
     }
   });
 
@@ -75,6 +92,9 @@ int main(int argc, char** argv) {
     if (dpp::run_once<struct register_bot_commands>()) {
       bot.guild_command_create(dpp::slashcommand("test", "n", bot.me.id),
                                guild_id);
+      auto where_command = dpp::slashcommand("where", "Where is Tom?", bot.me.id)
+                                   .add_option(dpp::command_option(dpp::command_option_type::co_user, "user", "with who?", false));
+      bot.guild_command_create(where_command, guild_id);
     }
   });
 

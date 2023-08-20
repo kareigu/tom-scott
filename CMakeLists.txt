@@ -43,8 +43,8 @@ set(DPP_BUILD_TEST OFF)
 set(DPP_NO_VCPKG ON)
 fetchcontent_declare(
   dpp
-  GIT_REPOSITORY https://github.com/brainboxdotcc/DPP.git
-  GIT_TAG v10.0.24
+  GIT_REPOSITORY https://github.com/kareigu/DPP.git
+  GIT_TAG master
   GIT_PROGRESS TRUE
   USES_TERMINAL_DOWNLOAD TRUE
 )
