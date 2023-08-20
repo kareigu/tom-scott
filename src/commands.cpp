@@ -58,7 +58,14 @@ TS_EXECUTE_IMPL(where) {
   try {
     auto user_id = std::get<dpp::snowflake>(event.get_parameter("user"));
     auto user = event.command.get_resolved_user(user_id);
-    auto user_name = user.global_name.length() > 0 ? user.global_name : user.username;
+    std::string user_name = user.global_name.length() > 0 ? user.global_name : user.username;
+    try {
+      auto member = event.command.get_resolved_member(user_id);
+      if (member.nickname.length() > 0)
+        user_name = member.nickname;
+    } catch (std::exception e) {
+      spdlog::warn("Couldn't get member::nickname for {}({})", user.username, user.id);
+    }
     event.reply(fmt::format("I'm in {} with {}{}", roll.city, generator(rand) % 2 == 0 ? "" : fmt::format("{} ", adjective), user_name));
   } catch (std::bad_variant_access e) {
     event.reply(fmt::format("I'm in {}, {}", roll.city, roll.country));
