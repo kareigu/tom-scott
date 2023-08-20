@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <dpp/dpp.h>
+#include <dpp/misc-enum.h>
 #include <dpp/once.h>
 #include <memory>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -22,13 +23,47 @@ int main(int argc, char** argv) {
                   config_ret.error().to_string());
     return EXIT_FAILURE;
   }
+  ts::Config config = config_ret.value();
 
-  const auto guild_id = dpp::snowflake(0000);
-  bool start_bot = false;
-  if (!start_bot)
-    return EXIT_SUCCESS;
+  auto guild_id_ret = config.get_number("GUILD_ID");
+  if (guild_id_ret.has_error()) {
+    spdlog::error("Error getting GUILD_ID: {}", guild_id_ret.error().to_string());
+    return EXIT_FAILURE;
+  }
+  const auto guild_id = dpp::snowflake(guild_id_ret.value());
 
-  dpp::cluster bot("");
+  auto token_ret = config.get_string("TOKEN");
+  if (token_ret.has_error()) {
+    spdlog::error("Error getting TOKEN: ()", token_ret.error().to_string());
+    return EXIT_FAILURE;
+  }
+  auto token = token_ret.value();
+  spdlog::debug(token);
+  dpp::cluster bot(token);
+
+  auto dpp_logger = spdlog::stdout_color_mt("dpp");
+  bot.on_log([dpp_logger](const dpp::log_t& log) {
+    switch (log.severity) {
+      case dpp::ll_info:
+        dpp_logger->info(log.message);
+        break;
+      case dpp::ll_warning:
+        dpp_logger->warn(log.message);
+        break;
+      case dpp::ll_error:
+        dpp_logger->error(log.message);
+        break;
+      case dpp::ll_debug:
+        dpp_logger->debug(log.message);
+        break;
+      case dpp::ll_trace:
+        dpp_logger->trace(log.message);
+        break;
+      case dpp::ll_critical:
+        dpp_logger->critical(log.message);
+        break;
+    }
+  });
 
   bot.on_slashcommand([](auto event) {
     if (event.command.get_command_name() == "test") {
