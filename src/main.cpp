@@ -1,7 +1,8 @@
-#include "appcommand.h"
+#include "commands.hpp"
 #include "config.hpp"
 
 #include <cstdlib>
+#include <dpp/appcommand.h>
 #include <dpp/dpp.h>
 #include <dpp/misc-enum.h>
 #include <dpp/once.h>
@@ -67,34 +68,31 @@ int main(int argc, char** argv) {
     }
   });
 
-  bot.on_slashcommand([](const dpp::slashcommand_t& event) {
-    if (event.command.get_command_name() == "test") {
-      event.reply("Nig");
-    }
+  std::vector<std::shared_ptr<ts::Command>> command_list{
+          std::make_shared<ts::Commandwhere>(bot.me.id),
+  };
 
-    if (event.command.get_command_name() == "where") {
-      auto interaction = std::get<dpp::command_interaction>(event.command.data);
 
-      try {
-        auto user_id = std::get<dpp::snowflake>(event.get_parameter("user"));
-        auto user = event.command.get_resolved_user(user_id);
-        event.reply(fmt::format("{} is a nigger ({})", user.global_name, user.has_nitro_full() ? "turbo" : "ei turbo"));
-      } catch (std::bad_variant_access e) {
-        event.reply("Nigger");
-      } catch (std::exception e) {
-        event.reply("Error");
-        spdlog::error("Error parsing command {}", e.what());
+  bot.on_slashcommand([&command_list](const dpp::slashcommand_t& event) {
+    for (const auto& command : command_list) {
+      if (command->name() == event.command.get_command_name()) {
+        auto ret = command->execute(event);
+        if (ret.has_error())
+          spdlog::error("Error executing command {}: {}", command->name(), ret.error());
+
+        auto issuing_user = event.command.get_issuing_user();
+        spdlog::info("{}({}) ran command {}", issuing_user.username, issuing_user.id, command->name());
+        break;
       }
     }
   });
 
-  bot.on_ready([&bot, guild_id](auto event) {
+  bot.on_ready([&bot, guild_id, &command_list](auto event) {
     if (dpp::run_once<struct register_bot_commands>()) {
-      bot.guild_command_create(dpp::slashcommand("test", "n", bot.me.id),
-                               guild_id);
-      auto where_command = dpp::slashcommand("where", "Where is Tom?", bot.me.id)
-                                   .add_option(dpp::command_option(dpp::command_option_type::co_user, "user", "with who?", false));
-      bot.guild_command_create(where_command, guild_id);
+      for (const auto& command : command_list) {
+        bot.guild_command_create(command->to_slashcommand(), guild_id);
+        spdlog::info("Created slashcommand: {}", command->name());
+      }
     }
   });
 
