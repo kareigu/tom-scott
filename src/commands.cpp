@@ -56,15 +56,17 @@ cpp::result<Response, std::string> Response::generate_response(const dpp::slashc
     case 7:
       location_string = fmt::format("on {} in {}", street_name, country);
       break;
+    case 10:
+    case 12:
+      location_string = fmt::format("on {} in {}", street_name, city);
+      break;
     case 8:
       location_string = fmt::format("in {}", city);
       break;
     case 9:
-    case 10:
       location_string = fmt::format("at {} in {}", airport_name, city);
       break;
     case 11:
-    case 12:
       location_string = fmt::format("at {} in {}", airport_name, country);
       break;
   }
@@ -122,6 +124,7 @@ cpp::result<Response, std::string> Response::generate_response(const dpp::slashc
       case 1:
       case 2:
       case 3:
+      case 11:
       case 18:
         with = fmt::format("with {}", name);
         break;
@@ -136,7 +139,6 @@ cpp::result<Response, std::string> Response::generate_response(const dpp::slashc
         break;
       case 9:
       case 10:
-      case 11:
         with = fmt::format("with {} from {}", name, company);
         break;
       case 12:
