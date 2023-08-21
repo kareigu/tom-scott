@@ -17,8 +17,12 @@ else()
   set(NINJA_MULTICONFIG FALSE)
 endif()
 
-set(SOURCES src/main.cpp src/config.cpp src/commands.cpp src/places.cpp
-            src/utils.cpp
+set(SOURCES
+    src/main.cpp
+    src/config.cpp
+    src/commands.cpp
+    src/places.cpp
+    src/utils.cpp
 )
 
 fetchcontent_declare(
@@ -62,7 +66,13 @@ fetchcontent_declare(
 fetchcontent_makeavailable(Result)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} PRIVATE spdlog nlohmann_json dpp Result)
+target_link_libraries(
+  ${PROJECT_NAME}
+  PRIVATE spdlog
+          nlohmann_json
+          dpp
+          Result
+)
 
 if(NINJA_MULTICONFIG)
   set(OUTPUT_FILE_PATH "./Debug/${PROJECT_NAME}")
