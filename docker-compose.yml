@@ -1,0 +1,8 @@
+services:
+  bot:
+    image: kareigu/tom-scott:latest
+    container_name: tom-scott
+    restart: unless-stopped
+    volumes:
+      - ./bot.cfg:/usr/src/tom_scott/bot.cfg
+      - ./data.json:/usr/src/tom_scott/data.json
