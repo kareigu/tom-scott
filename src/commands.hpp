@@ -2,6 +2,7 @@
 #include <dpp/dpp.h>
 #include <dpp/snowflake.h>
 #include <result.hpp>
+#include <spdlog/fmt/fmt.h>
 
 namespace ts {
 #define TS_SLASHCOMMAND_FUNCTION virtual dpp::slashcommand to_slashcommand() const noexcept
@@ -36,7 +37,32 @@ private:
   dpp::snowflake m_id;
 };
 
+struct Response {
+  std::string location;
+  std::optional<std::string> with;
+  std::optional<std::string> looking_at;
+  static cpp::result<Response, std::string> generate_response(const dpp::slashcommand_t& event);
+};
 
 TS_CREATE_COMMAND_CLASS(where)
 
 }// namespace ts
+template<>
+struct fmt::formatter<ts::Response> {
+  template<typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template<typename FormatContext>
+  auto format(const ts::Response& response, FormatContext& ctx) {
+    fmt::format_to(ctx.out(), "I am {}", response.location);
+    if (response.with) {
+      fmt::format_to(ctx.out(), " {}", response.with.value());
+    }
+    if (response.looking_at) {
+      fmt::format_to(ctx.out(), " {}", response.looking_at.value());
+    }
+    return fmt::format_to(ctx.out(), ".");
+  }
+};
